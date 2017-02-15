@@ -31,7 +31,7 @@ import static uk.co.real_logic.sbe.ir.GenerationUtil.collectVarData;
 import static uk.co.real_logic.sbe.ir.GenerationUtil.collectGroups;
 import static uk.co.real_logic.sbe.ir.GenerationUtil.collectFields;
 
-public class CppGenerator implements CodeGenerator
+public class C11Generator implements CodeGenerator
 {
     private static final String BASE_INDENT = "";
     private static final String INDENT = "    ";
@@ -39,7 +39,7 @@ public class CppGenerator implements CodeGenerator
     private final Ir ir;
     private final OutputManager outputManager;
 
-    public CppGenerator(final Ir ir, final OutputManager outputManager)
+    public C11Generator(final Ir ir, final OutputManager outputManager)
         throws IOException
     {
         Verify.notNull(ir, "ir");
@@ -242,8 +242,8 @@ public class CppGenerator implements CodeGenerator
             indent + "        m_buffer = buffer;\n" +
             indent + "        m_bufferLength = bufferLength;\n" +
             indent + "        m_dimensions.wrap(m_buffer, *pos, actingVersion, bufferLength);\n" +
-            indent + "        m_dimensions.blockLength((%1$s)%2$d);\n" +
-            indent + "        m_dimensions.numInGroup((%3$s)count);\n" +
+            indent + "        m_dimensions.blockLength(static_cast<%1$s>(%2$d));\n" +
+            indent + "        m_dimensions.numInGroup(static_cast<%3$s>(count));\n" +
             indent + "        m_index = -1;\n" +
             indent + "        m_count = count;\n" +
             indent + "        m_blockLength = %2$d;\n" +
@@ -412,7 +412,8 @@ public class CppGenerator implements CodeGenerator
                 indent + "    {\n" +
                     "%2$s" +
                 indent + "         const char *fieldPtr = (m_buffer + position() + %3$d);\n" +
-                indent + "         position(position() + %3$d + *((%4$s *)(m_buffer + position())));\n" +
+                indent + "         position(position() + %3$d +" +
+                         " *(reinterpret_cast<%4$s *>(m_buffer + position())));\n" +
                 indent + "         return fieldPtr;\n" +
                 indent + "    }\n\n",
                 formatPropertyName(propertyName),
@@ -427,7 +428,8 @@ public class CppGenerator implements CodeGenerator
                 indent + "        std::uint64_t lengthOfLengthField = %3$d;\n" +
                 indent + "        std::uint64_t lengthPosition = position();\n" +
                 indent + "        position(lengthPosition + lengthOfLengthField);\n" +
-                indent + "        std::uint64_t dataLength = %4$s(*((%5$s *)(m_buffer + lengthPosition)));\n" +
+                indent + "        std::uint64_t dataLength =" +
+                         " %4$s(*(reinterpret_cast<%5$s *>(m_buffer + lengthPosition)));\n" +
                 indent + "        std::uint64_t bytesToCopy = (length < dataLength) ? length : dataLength;\n" +
                 indent + "        std::uint64_t pos = position();\n" +
                 indent + "        position(position() + dataLength);\n" +
@@ -446,7 +448,7 @@ public class CppGenerator implements CodeGenerator
                 indent + "        std::uint64_t lengthOfLengthField = %2$d;\n" +
                 indent + "        std::uint64_t lengthPosition = position();\n" +
                 indent + "        position(lengthPosition + lengthOfLengthField);\n" +
-                indent + "        *((%3$s *)(m_buffer + lengthPosition)) = %4$s(length);\n" +
+                indent + "        *(reinterpret_cast<%3$s *>(m_buffer + lengthPosition)) = %4$s(length);\n" +
                 indent + "        std::uint64_t pos = position();\n" +
                 indent + "        position(position() + length);\n" +
                 indent + "        std::memcpy(m_buffer + pos, src, length);\n" +
@@ -465,7 +467,8 @@ public class CppGenerator implements CodeGenerator
                 indent + "        std::uint64_t lengthOfLengthField = %3$d;\n" +
                 indent + "        std::uint64_t lengthPosition = position();\n" +
                 indent + "        position(lengthPosition + lengthOfLengthField);\n" +
-                indent + "        std::uint64_t dataLength = %4$s(*((%5$s *)(m_buffer + lengthPosition)));\n" +
+                indent + "        std::uint64_t dataLength =" +
+                         " %4$s(*(reinterpret_cast<%5$s *>(m_buffer + lengthPosition)));\n" +
                 indent + "        std::uint64_t pos = position();\n" +
                 indent + "        const std::string result(m_buffer + pos, dataLength);\n" +
                 indent + "        position(position() + dataLength);\n" +
@@ -487,7 +490,8 @@ public class CppGenerator implements CodeGenerator
                 indent + "        std::uint64_t lengthOfLengthField = %3$d;\n" +
                 indent + "        std::uint64_t lengthPosition = position();\n" +
                 indent + "        position(lengthPosition + lengthOfLengthField);\n" +
-                indent + "        *((%4$s *)(m_buffer + lengthPosition)) = %5$s((%4$s)str.length());\n" +
+                indent + "        *(reinterpret_cast<%4$s *>(m_buffer + lengthPosition)) =" +
+                         " %5$s(static_cast<%4$s>(str.length()));\n" +
                 indent + "        std::uint64_t pos = position();\n" +
                 indent + "        position(position() + str.length());\n" +
                 indent + "        std::memcpy(m_buffer + pos, str.c_str(), str.length());\n" +
@@ -559,7 +563,7 @@ public class CppGenerator implements CodeGenerator
             indent + "    %4$s %1$sLength() const\n" +
             indent + "    {\n" +
             "%2$s" +
-            indent + "        return %3$s(*((%4$s *)(m_buffer + position())));\n" +
+            indent + "        return %3$s(*(reinterpret_cast<%4$s *>(m_buffer + position())));\n" +
             indent + "    }\n\n",
             toLowerFirstChar(propertyName),
             generateArrayFieldNotPresentCondition(token.version(), BASE_INDENT),
@@ -581,7 +585,7 @@ public class CppGenerator implements CodeGenerator
                 "\n" +
                 "    %1$s &clear()\n" +
                 "    {\n" +
-                "        *((%2$s *)(m_buffer + m_offset)) = 0;\n" +
+                "        *(reinterpret_cast<%2$s *>(m_buffer + m_offset)) = 0;\n" +
                 "        return *this;\n" +
                 "    }\n\n",
                 bitSetName,
@@ -667,7 +671,7 @@ public class CppGenerator implements CodeGenerator
                         "    bool %1$s() const\n" +
                         "    {\n" +
                         "%2$s" +
-                        "        return %3$s(*((%4$s *)(m_buffer + m_offset))) & (0x1L << %5$s);\n" +
+                        "        return %3$s(*(reinterpret_cast<%4$s *>(m_buffer + m_offset))) & (0x1L << %5$s);\n" +
                         "    }\n\n",
                         choiceName,
                         generateChoiceNotPresentCondition(token.version(), BASE_INDENT),
@@ -678,9 +682,9 @@ public class CppGenerator implements CodeGenerator
                     sb.append(String.format(
                         "    %1$s &%2$s(const bool value)\n" +
                         "    {\n" +
-                        "        %3$s bits = %4$s(*((%3$s *)(m_buffer + m_offset)));\n" +
+                        "        %3$s bits = %4$s(*(reinterpret_cast<%3$s *>(m_buffer + m_offset)));\n" +
                         "        bits = value ? (bits | (0x1L << %5$s)) : (bits & ~(0x1L << %5$s));\n" +
-                        "        *((%3$s *)(m_buffer + m_offset)) = %4$s(bits);\n" +
+                        "        *(reinterpret_cast<%3$s *>(m_buffer + m_offset)) = %4$s(bits);\n" +
                         "        return *this;\n" +
                         "    }\n",
                         bitsetClassName,
@@ -1014,7 +1018,7 @@ public class CppGenerator implements CodeGenerator
             indent + "    %1$s %2$s() const\n" +
             indent + "    {\n" +
                 "%3$s" +
-            indent + "        return %4$s(*((%1$s *)(m_buffer + m_offset + %5$d)));\n" +
+            indent + "        return %4$s(*(reinterpret_cast<%1$s *>(m_buffer + m_offset + %5$d)));\n" +
             indent + "    }\n\n",
             cppTypeName,
             propertyName,
@@ -1025,7 +1029,7 @@ public class CppGenerator implements CodeGenerator
         sb.append(String.format(
             indent + "    %1$s &%2$s(const %3$s value)\n" +
             indent + "    {\n" +
-            indent + "        *((%3$s *)(m_buffer + m_offset + %4$d)) = %5$s(value);\n" +
+            indent + "        *(reinterpret_cast<%3$s *>(m_buffer + m_offset + %4$d)) = %5$s(value);\n" +
             indent + "        return *this;\n" +
             indent + "    }\n",
             formatClassName(containingClassName),
@@ -1072,7 +1076,8 @@ public class CppGenerator implements CodeGenerator
             indent + "            throw std::runtime_error(\"index out of range for %2$s [E104]\");\n" +
             indent + "        }\n\n" +
                 "%4$s" +
-            indent + "        return %5$s(*((%1$s *)(m_buffer + m_offset + %6$d + (index * %7$d))));\n" +
+            indent + "        return %5$s(" +
+                     "*(reinterpret_cast<%1$s *>(m_buffer + m_offset + %6$d + (index * %7$d))));\n" +
             indent + "    }\n\n",
             cppTypeName,
             propertyName,
@@ -1089,7 +1094,8 @@ public class CppGenerator implements CodeGenerator
             indent + "        {\n" +
             indent + "            throw std::runtime_error(\"index out of range for %1$s [E105]\");\n" +
             indent + "        }\n\n" +
-            indent + "        *((%2$s *)(m_buffer + m_offset + %4$d + (index * %5$d))) = %6$s(value);\n" +
+            indent + "        *(reinterpret_cast<%2$s *>(m_buffer + m_offset + %4$d + (index * %5$d))) =" +
+                     "%6$s(value);\n" +
             indent + "    }\n\n",
             propertyName,
             cppTypeName,
@@ -1549,7 +1555,7 @@ public class CppGenerator implements CodeGenerator
                 indent + "    %1$s::Value %2$s() const\n" +
                 indent + "    {\n" +
                 "%3$s" +
-                indent + "        return %1$s::get(%4$s(*((%5$s *)(m_buffer + m_offset + %6$d))));\n" +
+                indent + "        return %1$s::get(%4$s(*(reinterpret_cast<%5$s *>(m_buffer + m_offset + %6$d))));\n" +
                 indent + "    }\n\n",
                 enumName,
                 propertyName,
@@ -1561,7 +1567,7 @@ public class CppGenerator implements CodeGenerator
             sb.append(String.format(
                 indent + "    %1$s &%2$s(const %3$s::Value value)\n" +
                 indent + "    {\n" +
-                indent + "        *((%4$s *)(m_buffer + m_offset + %5$d)) = %6$s(value);\n" +
+                indent + "        *(reinterpret_cast<%4$s *>(m_buffer + m_offset + %5$d)) = %6$s(value);\n" +
                 indent + "        return *this;\n" +
                 indent + "    }\n",
                 formatClassName(containingClassName),

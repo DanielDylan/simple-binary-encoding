@@ -28,16 +28,19 @@ import static java.io.File.separatorChar;
  */
 public class NamespaceOutputManager implements OutputManager
 {
+    public static final String DEFAULT_EXTENSION = ".h";
     private final File outputDir;
+    private final String extension;
 
     /**
-     * Create a new {@link OutputManager} for generating C++98 source files into a given package.
+     * Create a new {@link OutputManager} for generating C++ source files into a given package.
      *
      * @param baseDirectoryName for the generated source code.
      * @param namespaceName for the generated source code relative to the baseDirectoryName.
+     * @param extension the filename extension for generated files
      * @throws IOException if an error occurs during output
      */
-    public NamespaceOutputManager(final String baseDirectoryName, final String namespaceName)
+    public NamespaceOutputManager(final String baseDirectoryName, final String namespaceName, final String extension)
         throws IOException
     {
         Verify.notNull(baseDirectoryName, "baseDirectoryName");
@@ -52,6 +55,21 @@ public class NamespaceOutputManager implements OutputManager
         {
             throw new IllegalStateException("Unable to create directory: " + dirName);
         }
+
+        this.extension = extension;
+    }
+
+    /**
+     * Create a new {@link OutputManager} for generating C++98 source files into a given package.
+     *
+     * @param baseDirectoryName for the generated source code.
+     * @param namespaceName for the generated source code relative to the baseDirectoryName.
+     * @throws IOException if an error occurs during output
+     */
+    public NamespaceOutputManager(final String baseDirectoryName, final String namespaceName)
+        throws IOException
+    {
+        this(baseDirectoryName, namespaceName, DEFAULT_EXTENSION);
     }
 
     /**
@@ -65,7 +83,7 @@ public class NamespaceOutputManager implements OutputManager
      */
     public Writer createOutput(final String name) throws IOException
     {
-        final File targetFile = new File(outputDir, name + ".h");
+        final File targetFile = new File(outputDir, name + extension);
         return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(targetFile), "UTF-8"));
     }
 }
