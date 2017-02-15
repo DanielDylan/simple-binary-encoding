@@ -862,7 +862,6 @@ public class C11Generator implements CodeGenerator
             sb.append("\n");
         }
 
-        sb.append("using namespace sbe;\n\n");
         sb.append("namespace ");
         sb.append(String.join(" {\nnamespace ", namespaces));
         sb.append(" {\n\n");
@@ -1484,13 +1483,13 @@ public class C11Generator implements CodeGenerator
 
         sb.append(String.format(
             "\n" +
-            indent + "    static const char *%sMetaAttribute(const MetaAttribute::Attribute metaAttribute)\n" +
+            indent + "    static const char *%sMetaAttribute(const sbe::MetaAttribute::Attribute metaAttribute)\n" +
             indent + "    {\n" +
             indent + "        switch (metaAttribute)\n" +
             indent + "        {\n" +
-            indent + "            case MetaAttribute::EPOCH: return \"%s\";\n" +
-            indent + "            case MetaAttribute::TIME_UNIT: return \"%s\";\n" +
-            indent + "            case MetaAttribute::SEMANTIC_TYPE: return \"%s\";\n" +
+            indent + "            case sbe::MetaAttribute::EPOCH: return \"%s\";\n" +
+            indent + "            case sbe::MetaAttribute::TIME_UNIT: return \"%s\";\n" +
+            indent + "            case sbe::MetaAttribute::SEMANTIC_TYPE: return \"%s\";\n" +
             indent + "        }\n\n" +
             indent + "        return \"\";\n" +
             indent + "    }\n",
