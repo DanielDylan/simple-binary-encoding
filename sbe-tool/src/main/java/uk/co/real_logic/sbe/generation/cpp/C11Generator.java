@@ -62,7 +62,8 @@ public class C11Generator implements CodeGenerator
             out.append(generateCompositePropertyElements(
                 messageHeader, tokens.subList(1, tokens.size() - 1), BASE_INDENT));
             out.append("};\n");
-            out.append(CppUtil.closingBraces(ir.namespaces().length)).append("#endif\n");
+            out.append(CppUtil.closingBraces(ir.namespaces().length, " "));
+            out.append("\n");
         }
     }
 
@@ -146,7 +147,8 @@ public class C11Generator implements CodeGenerator
                 out.append(sb);
                 out.append(generateVarData(className, varData, BASE_INDENT));
                 out.append("};\n");
-                out.append(CppUtil.closingBraces(ir.namespaces().length)).append("#endif\n");
+                out.append(CppUtil.closingBraces(ir.namespaces().length, " "));
+                out.append("\n");
             }
         }
     }
@@ -256,11 +258,11 @@ public class C11Generator implements CodeGenerator
             numInGroupToken.encoding().applicableMaxValue().longValue()));
 
         sb.append(String.format(
-            indent + "    static SBE_CONSTEXPR std::uint64_t sbeHeaderSize()\n" +
+            indent + "    static constexpr std::uint64_t sbeHeaderSize()\n" +
             indent + "    {\n" +
             indent + "        return %1$d;\n" +
             indent + "    }\n\n" +
-            indent + "    static SBE_CONSTEXPR std::uint64_t sbeBlockLength()\n" +
+            indent + "    static constexpr std::uint64_t sbeBlockLength()\n" +
             indent + "    {\n" +
             indent + "        return %2$d;\n" +
             indent + "    }\n\n" +
@@ -337,7 +339,7 @@ public class C11Generator implements CodeGenerator
 
         sb.append(String.format(
             "\n" +
-            indent + "    static SBE_CONSTEXPR std::uint16_t %1$sId()\n" +
+            indent + "    static constexpr std::uint16_t %1$sId()\n" +
             indent + "    {\n" +
             indent + "        return %2$d;\n" +
             indent + "    }\n\n",
@@ -367,7 +369,7 @@ public class C11Generator implements CodeGenerator
             cppTypeForNumInGroup));
 
         sb.append(String.format(
-            indent + "    static SBE_CONSTEXPR std::uint64_t %1$sSinceVersion()\n" +
+            indent + "    static constexpr std::uint64_t %1$sSinceVersion()\n" +
             indent + "    {\n" +
             indent + "         return %2$d;\n" +
             indent + "    }\n\n" +
@@ -530,7 +532,7 @@ public class C11Generator implements CodeGenerator
             characterEncoding));
 
         sb.append(String.format(
-            indent + "    static SBE_CONSTEXPR std::uint64_t %1$sSinceVersion()\n" +
+            indent + "    static constexpr std::uint64_t %1$sSinceVersion()\n" +
             indent + "    {\n" +
             indent + "         return %2$d;\n" +
             indent + "    }\n\n" +
@@ -541,7 +543,7 @@ public class C11Generator implements CodeGenerator
             indent + "        return m_actingVersion >= %1$sSinceVersion();\n" +
             indent + "#pragma GCC diagnostic pop\n" +
             indent + "    }\n\n" +
-            indent + "    static SBE_CONSTEXPR std::uint16_t %1$sId()\n" +
+            indent + "    static constexpr std::uint16_t %1$sId()\n" +
             indent + "    {\n" +
             indent + "        return %3$d;\n" +
             indent + "    }\n\n",
@@ -551,7 +553,7 @@ public class C11Generator implements CodeGenerator
 
         sb.append(String.format(
             "\n" +
-            indent + "    static SBE_CONSTEXPR std::uint64_t %sHeaderLength()\n" +
+            indent + "    static constexpr std::uint64_t %sHeaderLength()\n" +
             indent + "    {\n" +
             indent + "        return %d;\n" +
             indent + "    }\n",
@@ -593,7 +595,8 @@ public class C11Generator implements CodeGenerator
 
             out.append(generateChoices(bitSetName, tokens.subList(1, tokens.size() - 1)));
             out.append("};\n");
-            out.append(CppUtil.closingBraces(ir.namespaces().length)).append("#endif\n");
+            out.append(CppUtil.closingBraces(ir.namespaces().length, " "));
+            out.append("\n");
         }
     }
 
@@ -612,7 +615,8 @@ public class C11Generator implements CodeGenerator
             out.append(generateEnumLookupMethod(tokens.subList(1, tokens.size() - 1), enumToken));
 
             out.append("};\n");
-            out.append(CppUtil.closingBraces(ir.namespaces().length)).append("#endif\n");
+            out.append(CppUtil.closingBraces(ir.namespaces().length, " "));
+            out.append("\n");
         }
     }
 
@@ -631,7 +635,8 @@ public class C11Generator implements CodeGenerator
                 compositeName, tokens.subList(1, tokens.size() - 1), BASE_INDENT));
 
             out.append("};\n");
-            out.append(CppUtil.closingBraces(ir.namespaces().length)).append("#endif\n");
+            out.append(CppUtil.closingBraces(ir.namespaces().length, " "));
+            out.append("\n");
         }
     }
 
@@ -825,33 +830,13 @@ public class C11Generator implements CodeGenerator
 
         sb.append("/* Generated SBE (Simple Binary Encoding) message codec */\n");
 
-        sb.append(String.format(
-            "#ifndef _%1$s_%2$s_H_\n" +
-            "#define _%1$s_%2$s_H_\n\n" +
-            "#if defined(SBE_HAVE_CMATH)\n" +
-            "/* cmath needed for std::numeric_limits<double>::quiet_NaN() */\n" +
-            "#  include <cmath>\n" +
-            "#  define SBE_FLOAT_NAN std::numeric_limits<float>::quiet_NaN()\n" +
-            "#  define SBE_DOUBLE_NAN std::numeric_limits<double>::quiet_NaN()\n" +
-            "#else\n" +
-            "/* math.h needed for NAN */\n" +
-            "#  include <math.h>\n" +
-            "#  define SBE_FLOAT_NAN NAN\n" +
-            "#  define SBE_DOUBLE_NAN NAN\n" +
-            "#endif\n\n" +
-            "#if __cplusplus >= 201103L\n" +
-            "#  include <cstdint>\n" +
-            "#  include <string>\n" +
-            "#  include <cstring>\n" +
-            "#endif\n\n" +
-            "#if __cplusplus >= 201103L\n" +
-            "#  define SBE_CONSTEXPR constexpr\n" +
-            "#else\n" +
-            "#  define SBE_CONSTEXPR const\n" +
-            "#endif\n\n" +
-            "#include <sbe/sbe.h>\n\n",
-            String.join("_", namespaces).toUpperCase(),
-            className.toUpperCase()));
+        sb.append(
+            "#pragma once\n\n" +
+            "#include <sbe/sbe.h>\n\n" +
+            "#include <cmath>\n" +
+            "#include <cstdint>\n" +
+            "#include <cstring>\n" +
+            "#include <string>\n\n");
 
         if (typesToInclude != null)
         {
@@ -863,7 +848,7 @@ public class C11Generator implements CodeGenerator
         }
 
         sb.append("namespace ");
-        sb.append(String.join(" {\nnamespace ", namespaces));
+        sb.append(String.join(" { namespace ", namespaces));
         sb.append(" {\n\n");
 
         return sb;
@@ -965,7 +950,7 @@ public class C11Generator implements CodeGenerator
 
         sb.append(String.format(
             "\n" +
-            indent + "    static SBE_CONSTEXPR %1$s %2$sNullValue()\n" +
+            indent + "    static constexpr %1$s %2$sNullValue()\n" +
             indent + "    {\n" +
             indent + "        return %3$s;\n" +
             indent + "    }\n",
@@ -975,7 +960,7 @@ public class C11Generator implements CodeGenerator
 
         sb.append(String.format(
             "\n" +
-            indent + "    static SBE_CONSTEXPR %1$s %2$sMinValue()\n" +
+            indent + "    static constexpr %1$s %2$sMinValue()\n" +
             indent + "    {\n" +
             indent + "        return %3$s;\n" +
             indent + "    }\n",
@@ -985,7 +970,7 @@ public class C11Generator implements CodeGenerator
 
         sb.append(String.format(
             "\n" +
-            indent + "    static SBE_CONSTEXPR %1$s %2$sMaxValue()\n" +
+            indent + "    static constexpr %1$s %2$sMaxValue()\n" +
             indent + "    {\n" +
             indent + "        return %3$s;\n" +
             indent + "    }\n",
@@ -995,7 +980,7 @@ public class C11Generator implements CodeGenerator
 
         sb.append(String.format(
             "\n" +
-            indent + "    static SBE_CONSTEXPR std::size_t %1$sEncodingLength()\n" +
+            indent + "    static constexpr std::size_t %1$sEncodingLength()\n" +
             indent + "    {\n" +
             indent + "        return %2$d;\n" +
             indent + "    }\n",
@@ -1050,7 +1035,7 @@ public class C11Generator implements CodeGenerator
 
         sb.append(String.format(
             "\n" +
-            indent + "    static SBE_CONSTEXPR std::uint64_t %1$sLength()\n" +
+            indent + "    static constexpr std::uint64_t %1$sLength()\n" +
             indent + "    {\n" +
             indent + "        return %2$d;\n" +
             indent + "    }\n\n",
@@ -1166,7 +1151,7 @@ public class C11Generator implements CodeGenerator
         {
             return String.format(
                 "\n" +
-                indent + "    static SBE_CONSTEXPR %1$s %2$s()\n" +
+                indent + "    static constexpr %1$s %2$s()\n" +
                 indent + "    {\n" +
                 indent + "        return %3$s;\n" +
                 indent + "    }\n",
@@ -1191,7 +1176,7 @@ public class C11Generator implements CodeGenerator
 
         sb.append(String.format(
             "\n" +
-            indent + "    static SBE_CONSTEXPR std::uint64_t %1$sLength()\n" +
+            indent + "    static constexpr std::uint64_t %1$sLength()\n" +
             indent + "    {\n" +
             indent + "        return %2$d;\n" +
             indent + "    }\n\n",
@@ -1265,7 +1250,7 @@ public class C11Generator implements CodeGenerator
             "        reset(buffer, offset, bufferLength, actingVersion);\n" +
             "        return *this;\n" +
             "    }\n\n" +
-            "    static SBE_CONSTEXPR std::uint64_t encodedLength()\n" +
+            "    static constexpr std::uint64_t encodedLength()\n" +
             "    {\n" +
             "        return %2$s;\n" +
             "    }\n\n" +
@@ -1328,23 +1313,23 @@ public class C11Generator implements CodeGenerator
             "    }\n\n" +
             "public:\n\n" +
             "%11$s" +
-            "    static SBE_CONSTEXPR %1$s sbeBlockLength()\n" +
+            "    static constexpr %1$s sbeBlockLength()\n" +
             "    {\n" +
             "        return %2$s;\n" +
             "    }\n\n" +
-            "    static SBE_CONSTEXPR %3$s sbeTemplateId()\n" +
+            "    static constexpr %3$s sbeTemplateId()\n" +
             "    {\n" +
             "        return %4$s;\n" +
             "    }\n\n" +
-            "    static SBE_CONSTEXPR %5$s sbeSchemaId()\n" +
+            "    static constexpr %5$s sbeSchemaId()\n" +
             "    {\n" +
             "        return %6$s;\n" +
             "    }\n\n" +
-            "    static SBE_CONSTEXPR %7$s sbeSchemaVersion()\n" +
+            "    static constexpr %7$s sbeSchemaVersion()\n" +
             "    {\n" +
             "        return %8$s;\n" +
             "    }\n\n" +
-            "    static SBE_CONSTEXPR char * sbeSemanticType()\n" +
+            "    static constexpr char * sbeSemanticType()\n" +
             "    {\n" +
             "        return \"%9$s\";\n" +
             "    }\n\n" +
@@ -1415,7 +1400,7 @@ public class C11Generator implements CodeGenerator
 
                 sb.append(String.format(
                     "\n" +
-                    indent + "    static SBE_CONSTEXPR std::uint16_t %1$sId()\n" +
+                    indent + "    static constexpr std::uint16_t %1$sId()\n" +
                     indent + "    {\n" +
                     indent + "        return %2$d;\n" +
                     indent + "    }\n\n",
@@ -1423,7 +1408,7 @@ public class C11Generator implements CodeGenerator
                     signalToken.id()));
 
                 sb.append(String.format(
-                    indent + "    static SBE_CONSTEXPR std::uint64_t %1$sSinceVersion()\n" +
+                    indent + "    static constexpr std::uint64_t %1$sSinceVersion()\n" +
                     indent + "    {\n" +
                     indent + "         return %2$d;\n" +
                     indent + "    }\n\n" +
@@ -1438,7 +1423,7 @@ public class C11Generator implements CodeGenerator
                     signalToken.version()));
 
                 sb.append(String.format(
-                    indent + "    static SBE_CONSTEXPR std::size_t %1$sEncodingOffset()\n" +
+                    indent + "    static constexpr std::size_t %1$sEncodingOffset()\n" +
                     indent + "    {\n" +
                     indent + "         return %2$d;\n" +
                     indent + "    }\n\n",
@@ -1577,7 +1562,7 @@ public class C11Generator implements CodeGenerator
                 formatByteOrderEncoding(token.encoding().byteOrder(), token.encoding().primitiveType())));
 
             sb.append(String.format(
-                indent + "    static SBE_CONSTEXPR std::size_t %1$sEncodingLength()\n" +
+                indent + "    static constexpr std::size_t %1$sEncodingLength()\n" +
                 indent + "    {\n" +
                 indent + "        return %2$d;\n" +
                 indent + "    }\n",
@@ -1616,7 +1601,7 @@ public class C11Generator implements CodeGenerator
 
         sb.append(String.format(
             "\n" +
-            indent + "    static SBE_CONSTEXPR std::size_t %1$sEncodingLength()\n" +
+            indent + "    static constexpr std::size_t %1$sEncodingLength()\n" +
             indent + "    {\n" +
             indent + "        return %2$d;\n" +
             indent + "    }\n",
@@ -1711,7 +1696,7 @@ public class C11Generator implements CodeGenerator
                 break;
 
             case FLOAT:
-                literal = value.endsWith("NaN") ? "SBE_FLOAT_NAN" : value + "f";
+                literal = value.endsWith("NaN") ? "std::numeric_limits<float>::quiet_NaN()" : value + "f";
                 break;
 
             case INT64:
@@ -1727,7 +1712,7 @@ public class C11Generator implements CodeGenerator
                 break;
 
             case DOUBLE:
-                literal = value.endsWith("NaN") ? "SBE_DOUBLE_NAN" : value;
+                literal = value.endsWith("NaN") ? "std::numeric_limits<double>::quiet_NaN()" : value;
                 break;
         }
 

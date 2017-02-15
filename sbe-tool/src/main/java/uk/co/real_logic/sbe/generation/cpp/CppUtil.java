@@ -140,8 +140,13 @@ public class CppUtil
         }
     }
 
+    public static String closingBraces(final int count, final String separator)
+    {
+        return new String(new char[count]).replace("\0", "}" + separator);
+    }
+
     public static String closingBraces(final int count)
     {
-        return new String(new char[count]).replace("\0", "}\n");
+        return closingBraces(count, "\n");
     }
 }
