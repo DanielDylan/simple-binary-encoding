@@ -38,8 +38,9 @@ public class C11Generator implements CodeGenerator
 
     private final Ir ir;
     private final OutputManager outputManager;
+    private final String extension;
 
-    public C11Generator(final Ir ir, final OutputManager outputManager)
+    public C11Generator(final Ir ir, final OutputManager outputManager, final String extension)
         throws IOException
     {
         Verify.notNull(ir, "ir");
@@ -47,6 +48,7 @@ public class C11Generator implements CodeGenerator
 
         this.ir = ir;
         this.outputManager = outputManager;
+        this.extension = extension;
     }
 
     public void generateMessageHeaderStub() throws IOException
@@ -56,7 +58,7 @@ public class C11Generator implements CodeGenerator
         try (Writer out = outputManager.createOutput(messageHeader))
         {
             final List<Token> tokens = ir.headerStructure().tokens();
-            out.append(generateFileHeader(ir.namespaces(), messageHeader, null));
+            out.append(generateFileHeader(ir.namespaces(), messageHeader, null, extension));
             out.append(generateClassDeclaration(messageHeader));
             out.append(generateFixedFlyweightCode(messageHeader, tokens.get(0).encodedLength()));
             out.append(generateCompositePropertyElements(
@@ -125,7 +127,7 @@ public class C11Generator implements CodeGenerator
 
             try (Writer out = outputManager.createOutput(className))
             {
-                out.append(generateFileHeader(ir.namespaces(), className, typesToInclude));
+                out.append(generateFileHeader(ir.namespaces(), className, typesToInclude, extension));
                 out.append(generateClassDeclaration(className));
                 out.append(generateMessageFlyweightCode(className, msgToken));
 
@@ -579,7 +581,7 @@ public class C11Generator implements CodeGenerator
 
         try (Writer out = outputManager.createOutput(bitSetName))
         {
-            out.append(generateFileHeader(ir.namespaces(), bitSetName, null));
+            out.append(generateFileHeader(ir.namespaces(), bitSetName, null, extension));
             out.append(generateClassDeclaration(bitSetName));
             out.append(generateFixedFlyweightCode(bitSetName, tokens.get(0).encodedLength()));
 
@@ -607,7 +609,7 @@ public class C11Generator implements CodeGenerator
 
         try (Writer out = outputManager.createOutput(enumName))
         {
-            out.append(generateFileHeader(ir.namespaces(), enumName, null));
+            out.append(generateFileHeader(ir.namespaces(), enumName, null, extension));
             out.append(generateEnumDeclaration(enumName));
 
             out.append(generateEnumValues(tokens.subList(1, tokens.size() - 1), enumToken));
@@ -627,7 +629,7 @@ public class C11Generator implements CodeGenerator
         try (Writer out = outputManager.createOutput(compositeName))
         {
             out.append(generateFileHeader(ir.namespaces(), compositeName,
-                generateTypesToIncludes(tokens.subList(1, tokens.size() - 1))));
+                generateTypesToIncludes(tokens.subList(1, tokens.size() - 1)), extension));
             out.append(generateClassDeclaration(compositeName));
             out.append(generateFixedFlyweightCode(compositeName, tokens.get(0).encodedLength()));
 
@@ -824,7 +826,8 @@ public class C11Generator implements CodeGenerator
     private static CharSequence generateFileHeader(
         final CharSequence[] namespaces,
         final String className,
-        final List<String> typesToInclude)
+        final List<String> typesToInclude,
+        final String extension)
     {
         final StringBuilder sb = new StringBuilder();
 
@@ -842,7 +845,7 @@ public class C11Generator implements CodeGenerator
         {
             for (final String incName : typesToInclude)
             {
-                sb.append(String.format("#include \"%1$s.hxx\"\n", toUpperFirstChar(incName)));
+                sb.append(String.format("#include \"%1$s%2$s\"\n", toUpperFirstChar(incName), extension));
             }
             sb.append("\n");
         }
@@ -1329,7 +1332,7 @@ public class C11Generator implements CodeGenerator
             "    {\n" +
             "        return %8$s;\n" +
             "    }\n\n" +
-            "    static constexpr char * sbeSemanticType()\n" +
+            "    static constexpr const char * sbeSemanticType()\n" +
             "    {\n" +
             "        return \"%9$s\";\n" +
             "    }\n\n" +

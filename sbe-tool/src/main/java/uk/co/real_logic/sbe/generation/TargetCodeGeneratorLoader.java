@@ -49,7 +49,12 @@ public enum TargetCodeGeneratorLoader implements TargetCodeGenerator
     {
         public CodeGenerator newInstance(final Ir ir, final String outputDir) throws IOException
         {
-            return new C11Generator(ir, new NamespaceOutputManager(outputDir, ir.applicableNamespace(), ".hxx"));
+            final String extension = ".hxx";
+
+            return new C11Generator(
+                ir,
+                new NamespaceOutputManager(outputDir, ir.applicableNamespace(), extension),
+                extension);
         }
     },
 
