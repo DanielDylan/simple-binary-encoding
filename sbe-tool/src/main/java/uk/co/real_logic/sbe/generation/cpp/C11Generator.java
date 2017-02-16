@@ -842,7 +842,7 @@ public class C11Generator implements CodeGenerator
         {
             for (final String incName : typesToInclude)
             {
-                sb.append(String.format("#include \"%1$s.h\"\n", toUpperFirstChar(incName)));
+                sb.append(String.format("#include \"%1$s.hxx\"\n", toUpperFirstChar(incName)));
             }
             sb.append("\n");
         }
