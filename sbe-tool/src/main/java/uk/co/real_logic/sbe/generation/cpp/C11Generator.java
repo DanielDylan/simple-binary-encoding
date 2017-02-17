@@ -370,6 +370,10 @@ public class C11Generator implements CodeGenerator
             propertyName,
             cppTypeForNumInGroup));
 
+        final String expression = (token.version() > 0) ?
+            String.format("m_actingVersion >= %1$sSinceVersion()", propertyName) :
+            "true";
+
         sb.append(String.format(
             indent + "    static constexpr std::uint64_t %1$sSinceVersion()\n" +
             indent + "    {\n" +
@@ -377,13 +381,11 @@ public class C11Generator implements CodeGenerator
             indent + "    }\n\n" +
             indent + "    bool %1$sInActingVersion()\n" +
             indent + "    {\n" +
-            indent + "#pragma GCC diagnostic push\n" +
-            indent + "#pragma GCC diagnostic ignored \"-Wtautological-compare\"\n" +
-            indent + "        return m_actingVersion >= %1$sSinceVersion();\n" +
-            indent + "#pragma GCC diagnostic pop\n" +
+            indent + "        return %3$s;\n" +
             indent + "    }\n",
             propertyName,
-            token.version()));
+            token.version(),
+            expression));
 
         return sb;
     }
@@ -524,14 +526,20 @@ public class C11Generator implements CodeGenerator
         final String lengthCppType,
         final String indent)
     {
+        final String loweredFirstCharPropertyName = toLowerFirstChar(propertyName);
+
         sb.append(String.format(
             "\n"  +
             indent + "    static const char *%1$sCharacterEncoding()\n" +
             indent + "    {\n" +
             indent + "        return \"%2$s\";\n" +
             indent + "    }\n\n",
-            toLowerFirstChar(propertyName),
+            loweredFirstCharPropertyName,
             characterEncoding));
+
+        final String expression = (token.version() > 0) ?
+            String.format("m_actingVersion >= %1$sSinceVersion()", loweredFirstCharPropertyName) :
+            "true";
 
         sb.append(String.format(
             indent + "    static constexpr std::uint64_t %1$sSinceVersion()\n" +
@@ -540,18 +548,16 @@ public class C11Generator implements CodeGenerator
             indent + "    }\n\n" +
             indent + "    bool %1$sInActingVersion()\n" +
             indent + "    {\n" +
-            indent + "#pragma GCC diagnostic push\n" +
-            indent + "#pragma GCC diagnostic ignored \"-Wtautological-compare\"\n" +
-            indent + "        return m_actingVersion >= %1$sSinceVersion();\n" +
-            indent + "#pragma GCC diagnostic pop\n" +
+            indent + "        return %4$s;\n" +
             indent + "    }\n\n" +
             indent + "    static constexpr std::uint16_t %1$sId()\n" +
             indent + "    {\n" +
             indent + "        return %3$d;\n" +
             indent + "    }\n\n",
-            toLowerFirstChar(propertyName),
+            loweredFirstCharPropertyName,
             token.version(),
-            token.id()));
+            token.id(),
+            expression));
 
         sb.append(String.format(
             "\n" +
@@ -1410,6 +1416,10 @@ public class C11Generator implements CodeGenerator
                     propertyName,
                     signalToken.id()));
 
+                final String expression = (signalToken.version() > 0) ?
+                    String.format("m_actingVersion >= %1$sSinceVersion()", propertyName) :
+                    "true";
+
                 sb.append(String.format(
                     indent + "    static constexpr std::uint64_t %1$sSinceVersion()\n" +
                     indent + "    {\n" +
@@ -1417,13 +1427,11 @@ public class C11Generator implements CodeGenerator
                     indent + "    }\n\n" +
                     indent + "    bool %1$sInActingVersion()\n" +
                     indent + "    {\n" +
-                    indent + "#pragma GCC diagnostic push\n" +
-                    indent + "#pragma GCC diagnostic ignored \"-Wtautological-compare\"\n" +
-                    indent + "        return m_actingVersion >= %1$sSinceVersion();\n" +
-                    indent + "#pragma GCC diagnostic pop\n" +
+                    indent + "        return %3$s;\n" +
                     indent + "    }\n\n",
                     propertyName,
-                    signalToken.version()));
+                    signalToken.version(),
+                    expression));
 
                 sb.append(String.format(
                     indent + "    static constexpr std::size_t %1$sEncodingOffset()\n" +
