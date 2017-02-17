@@ -191,6 +191,51 @@ public class C11Generator implements CodeGenerator
         }
     }
 
+    private static String checkInBoundsStatement(
+        final String variableName,
+        final long minValue,
+        final long maxValue,
+        final PrimitiveType primitiveType,
+        final String indent)
+    {
+        String expression = "";
+        String prefix = "";
+        String infix = "";
+        String suffix = "";
+
+        if (minValue > primitiveType.minValue().longValue())
+        {
+            expression = String.format("%1$s < %2$d", variableName, minValue);
+            prefix = "(";
+            infix = ") || (";
+            suffix = ")";
+        }
+
+        if (maxValue < primitiveType.maxValue().longValue())
+        {
+            expression = String.format(
+                "%1$s%2$s%3$s%4$s > %5$d%6$s",
+                prefix,
+                expression,
+                infix,
+                variableName,
+                maxValue,
+                suffix);
+        }
+
+        if (expression.length() > 0)
+        {
+            return String.format(
+                indent + "if (%1$s)\n" +
+                indent + "{\n" +
+                indent + "    throw std::runtime_error(\"count outside of allowed range [E110]\");\n" +
+                indent + "}\n",
+                expression);
+        }
+
+        return "";
+    }
+
     private static void generateGroupClassHeader(
         final StringBuilder sb, final String groupName, final List<Token> tokens, final int index, final String indent)
     {
@@ -200,7 +245,10 @@ public class C11Generator implements CodeGenerator
         final int blockLength = tokens.get(index).encodedLength();
         final Token numInGroupToken = tokens.get(index + 3);
         final String cppTypeForBlockLength = cppTypeName(tokens.get(index + 2).encoding().primitiveType());
-        final String cppTypeForNumInGroup = cppTypeName(numInGroupToken.encoding().primitiveType());
+        final PrimitiveType primitiveType = numInGroupToken.encoding().primitiveType();
+        final String cppTypeForNumInGroup = cppTypeName(primitiveType);
+        final long minValue = numInGroupToken.encoding().applicableMinValue().longValue();
+        final long maxValue = numInGroupToken.encoding().applicableMaxValue().longValue();
 
         sb.append(String.format(
             "\n" +
@@ -239,10 +287,7 @@ public class C11Generator implements CodeGenerator
             indent + "    inline void wrapForEncode(char *buffer, const %3$s count," +
                 " std::uint64_t *pos, const std::uint64_t actingVersion, const std::uint64_t bufferLength)\n" +
             indent + "    {\n" +
-            indent + "        if (count < %5$d || count > %6$d)\n" +
-            indent + "        {\n" +
-            indent + "            throw std::runtime_error(\"count outside of allowed range [E110]\");\n" +
-            indent + "        }\n" +
+                     "%5$s" +
             indent + "        m_buffer = buffer;\n" +
             indent + "        m_bufferLength = bufferLength;\n" +
             indent + "        m_dimensions.wrap(m_buffer, *pos, actingVersion, bufferLength);\n" +
@@ -256,8 +301,7 @@ public class C11Generator implements CodeGenerator
             indent + "        *m_positionPtr = *m_positionPtr + %4$d;\n" +
             indent + "    }\n\n",
             cppTypeForBlockLength, blockLength, cppTypeForNumInGroup, dimensionHeaderLength,
-            numInGroupToken.encoding().applicableMinValue().longValue(),
-            numInGroupToken.encoding().applicableMaxValue().longValue()));
+            checkInBoundsStatement("count", minValue, maxValue, primitiveType, indent + "        ")));
 
         sb.append(String.format(
             indent + "    static constexpr std::uint64_t sbeHeaderSize()\n" +
